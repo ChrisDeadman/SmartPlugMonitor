@@ -68,8 +68,6 @@ namespace SmartPlugMonitor
                     trayIcon.Visible = true;
                 }
 
-                ToggleConfigWindow (null, null);
-
                 sensorWorkerFactory = new SensorWorkerFactory ();
                 sensorWorkerBuilders = new ISensorWorkerBuilder[] {
                     new TpLinkSensorWorker.TpLinkSensorWorkerBuilder (),
@@ -103,6 +101,7 @@ namespace SmartPlugMonitor
                     configWindow = new ConfigurationUi ();
                     configWindow.FormClosed += OnConfigWindowClosed;
                     configWindow.Show ();
+                    configWindow.Location = new Point (Cursor.Position.X - configWindow.Width, Cursor.Position.Y - configWindow.Height);
                 }
             }
 
