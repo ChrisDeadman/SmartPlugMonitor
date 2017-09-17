@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using SmartPlugMonitor.Config;
 using SmartPlugMonitor.Sensors;
+using System.Globalization;
 
 namespace SmartPlugMonitor.Workers
 {
@@ -51,17 +52,17 @@ namespace SmartPlugMonitor.Workers
 
                         var values = new List<String> ();
                         if (monitorWattage) {
-                            values.Add ($"{data.Wattage:0}");
+                            values.Add (data.Wattage.ToString ("N0", CultureInfo.InvariantCulture));
                         }
                         if (monitorVoltage) {
-                            values.Add ($"{data.Voltage:0}");
+                            values.Add (data.Voltage.ToString ("N0", CultureInfo.InvariantCulture));
                         }
                         if (monitorCurrent) {
-                            values.Add ($"{data.Current:0.##}".TrimStart('0'));
+                            values.Add (data.Current.ToString ("N2", CultureInfo.InvariantCulture).TrimStart ('0'));
                         }
 
                         if (values.Count > 0) {
-                            Log.Info ($"{String.Join((", "), values)}");
+                            Log.Info (String.Join ((", "), values));
                         }
 
                         return values;

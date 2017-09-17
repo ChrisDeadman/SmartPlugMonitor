@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace SmartPlugMonitor.Sensors
 {
@@ -59,7 +60,7 @@ namespace SmartPlugMonitor.Sensors
             matches = CurrentRegex.Match (response);
             foreach (Group match in matches.Groups) {
                 if (match.Success) {
-                    double.TryParse (match.Value, out current);
+                    double.TryParse (match.Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out current);
                 } else {
                     return null;
                 }
