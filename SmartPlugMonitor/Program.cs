@@ -59,13 +59,14 @@ namespace SmartPlugMonitor
 
                 trayIconStrip = new TrayIconStrip (3);
                 foreach (var trayIcon in trayIconStrip.TrayIcons) {
+                    trayIcon.Text = Globals.ApplicationName;
+                    trayIcon.ContextMenuStrip = contextMenuStrip;
                     trayIcon.Click += new EventHandler ((s, e) => {
                         var args = e as MouseEventArgs;
                         if (args.Button == MouseButtons.Left) {
                             ToggleConfigWindow (this, e);
                         }
                     });
-                    trayIcon.Visible = true;
                 }
 
                 sensorWorkerFactory = new SensorWorkerFactory ();
@@ -101,7 +102,7 @@ namespace SmartPlugMonitor
                     configWindow = new ConfigurationUi ();
                     configWindow.FormClosed += OnConfigWindowClosed;
                     configWindow.Show ();
-                    configWindow.Location = new Point (Cursor.Position.X - configWindow.Width, Cursor.Position.Y - configWindow.Height);
+                    configWindow.Location = new Point (Cursor.Position.X - configWindow.Width, Cursor.Position.Y - configWindow.Height - 50);
                 }
             }
 

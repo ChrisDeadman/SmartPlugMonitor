@@ -1,14 +1,16 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 
+using SmartPlugMonitor;
+
 // Information about this assembly is defined by the following attributes.
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle ("SmartPlugMonitor")]
+[assembly: AssemblyTitle (Globals.ApplicationName)]
 [assembly: AssemblyDescription ("Tray-based power monitoring software for smart plugs")]
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("Deads Inc.")]
-[assembly: AssemblyProduct ("SmartPlugMonitor")]
+[assembly: AssemblyProduct (Globals.ApplicationName)]
 [assembly: AssemblyCopyright ("Copyright © 2017")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]

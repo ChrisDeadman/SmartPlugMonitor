@@ -7,7 +7,9 @@ namespace SmartPlugMonitor
 {
     public static class Globals
     {
-        static readonly string ApplicationPath = Application.StartupPath + @"/";
+        public const string ApplicationName = "Smartplug Monitor";
+
+        public static readonly string ApplicationPath = Application.StartupPath + @"/";
 
         public static readonly Icon ApplicationIcon = new Icon (Assembly.GetExecutingAssembly ().GetManifestResourceStream ("icon.ico"));
 
