@@ -52,7 +52,7 @@ namespace SmartPlugMonitor.Ui
             }
         }
 
-        public void DrawText (NotifyIcon trayIcon, String text)
+        public void DrawText (NotifyIcon trayIcon, string text)
         {
             var useSmallFont = text.Length > 2;
             var x = useSmallFont ? -3 : -2;

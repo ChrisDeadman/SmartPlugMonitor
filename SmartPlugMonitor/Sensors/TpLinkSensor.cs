@@ -69,7 +69,7 @@ namespace SmartPlugMonitor.Sensors
             return new RealTimeData (wattage, voltage, current);
         }
 
-        private static String SendReceive (Stream stream, String message)
+        private static string SendReceive (Stream stream, string message)
         {
             using (var writer = new BinaryWriter (stream, Encoding.UTF8))
             using (var reader = new BinaryReader (stream)) {
@@ -83,7 +83,7 @@ namespace SmartPlugMonitor.Sensors
             }
         }
 
-        private static byte[] Encrypt (String message)
+        private static byte[] Encrypt (string message)
         {
             var key = 171;
             var idx = 0;
@@ -101,7 +101,7 @@ namespace SmartPlugMonitor.Sensors
             return result;
         }
 
-        private static String Decrypt (byte[] message)
+        private static string Decrypt (byte[] message)
         {
             var key = 171;
             var result = "";

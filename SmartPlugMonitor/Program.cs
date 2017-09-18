@@ -37,11 +37,12 @@ namespace SmartPlugMonitor
 
         private class AppContext: ApplicationContext
         {
-            private readonly SensorWorkerFactory sensorWorkerFactory;
+            private readonly SensorWorkerRunner sensorWorkerRunner;
             private readonly ISensorWorkerBuilder[] sensorWorkerBuilders;
 
-            private TrayIconText trayIconTextWriter = new TrayIconText ();
-            private TrayIconStrip trayIconStrip;
+            private readonly TrayIconStrip trayIconStrip = new TrayIconStrip (3);
+            private readonly TrayIconText trayIconTextWriter = new TrayIconText ();
+
             private Form configWindow;
 
             public AppContext ()
@@ -57,7 +58,6 @@ namespace SmartPlugMonitor
                 var contextMenuStrip = new ContextMenuStrip ();
                 contextMenuStrip.Items.AddRange (new ToolStripMenuItem[] { configureItem, quitItem });
 
-                trayIconStrip = new TrayIconStrip (3);
                 foreach (var trayIcon in trayIconStrip.TrayIcons) {
                     trayIcon.Text = Globals.ApplicationName;
                     trayIcon.ContextMenuStrip = contextMenuStrip;
@@ -69,13 +69,12 @@ namespace SmartPlugMonitor
                     });
                 }
 
-                sensorWorkerFactory = new SensorWorkerFactory ();
+                sensorWorkerRunner = new SensorWorkerRunner ();
+                sensorWorkerRunner.ValuesChanged += OnUpdateTrayIcon;
                 sensorWorkerBuilders = new ISensorWorkerBuilder[] {
-                    new TpLinkSensorWorker.TpLinkSensorWorkerBuilder (),
-                    new SensorSummaryWorker.SensorSummaryWorkerBuilder (sensorWorkerFactory, OnUpdateTrayIcon)
+                    new TpLinkSensorWorker.TpLinkSensorWorkerBuilder ()
                 };
-                sensorWorkerFactory.build (sensorWorkerBuilders);
-                sensorWorkerFactory.Start ();
+                sensorWorkerRunner.Start (sensorWorkerBuilders);
             }
 
             public void Quit (object sender, EventArgs args)
@@ -86,7 +85,7 @@ namespace SmartPlugMonitor
                     configWindow.Close ();
                 }
 
-                sensorWorkerFactory.Stop ();
+                sensorWorkerRunner.Dispose ();
                 trayIconStrip.Dispose ();
 
                 Application.Exit ();
@@ -111,29 +110,32 @@ namespace SmartPlugMonitor
                 Log.Debug ("OnConfigWindowClosed");
 
                 configWindow = null;
-                sensorWorkerFactory.build (sensorWorkerBuilders);
-                sensorWorkerFactory.Start ();
+
+                sensorWorkerRunner.Stop ();
+                sensorWorkerRunner.Start (sensorWorkerBuilders);
             }
 
-            void OnUpdateTrayIcon (IDictionary<ISensorWorker, ICollection<string>> sensorSummary)
+            void OnUpdateTrayIcon (object sender, SensorWorkerRunner.ValuesChangedEventArgs args)
             {
                 var trayIconEnumerator = trayIconStrip.TrayIcons.GetEnumerator ();
 
-                if (sensorSummary.Count <= 0) {
+                if (args.Values.Count <= 0) {
                     if (trayIconEnumerator.MoveNext ()) {
                         var trayIcon = trayIconEnumerator.Current;
+                        trayIcon.Text = Globals.ApplicationName;
                         trayIcon.Icon = Globals.ApplicationIcon;
                         trayIcon.Visible = true;
                     }
                 }
 
-                foreach (var sensorEntry in sensorSummary) {
-                    foreach (var value in sensorEntry.Value) {
+                foreach (var sensorEntry in args.Values) {
+                    foreach (var subEntry in sensorEntry.Value) {
                         if (!trayIconEnumerator.MoveNext ()) {
                             break;
                         }
                         var trayIcon = trayIconEnumerator.Current;
-                        trayIconTextWriter.DrawText (trayIcon, value);
+                        trayIcon.Text = $"{sensorEntry.Key.DisplayName}:{subEntry.Key}";
+                        trayIconTextWriter.DrawText (trayIcon, subEntry.Value);
                         trayIcon.Visible = true;
                     }
                 }

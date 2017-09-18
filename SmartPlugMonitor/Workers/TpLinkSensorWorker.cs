@@ -13,16 +13,21 @@ namespace SmartPlugMonitor.Workers
     {
         private static readonly ILog Log = LogManager.GetLogger (typeof(TpLinkSensorWorker));
 
+        private const string SENSOR_ID_ERR = "error";
+        private const string SENSOR_ID_WATTAGE = "wattage";
+        private const string SENSOR_ID_VOLTAGE = "voltage";
+        private const string SENSOR_ID_CURRENT = "current";
+       
         private static readonly string ERROR_NOT_CONNECTED = "D/C";
         private static readonly string ERROR_NOT_AVAILABLE = "N/A";
         private static readonly int PORT_NUMBER = 9999;
 
-        private readonly String ipAddress;
+        private readonly string ipAddress;
         private readonly bool monitorWattage;
         private readonly bool monitorVoltage;
         private readonly bool monitorCurrent;
 
-        public TpLinkSensorWorker (String ipAddress, bool monitorWattage, bool monitorVoltage, bool monitorCurrent)
+        public TpLinkSensorWorker (string ipAddress, bool monitorWattage, bool monitorVoltage, bool monitorCurrent)
         {
             this.ipAddress = ipAddress;
             this.monitorWattage = monitorWattage;
@@ -32,7 +37,7 @@ namespace SmartPlugMonitor.Workers
 
         public string DisplayName { get { return "tp-link"; } }
 
-        public ICollection<string> Values {
+        public IReadOnlyDictionary<string, string> Values {
             get {
                 try {
                     using (var tcpClient = new TcpClient ()) {
@@ -40,39 +45,39 @@ namespace SmartPlugMonitor.Workers
                         var success = result.AsyncWaitHandle.WaitOne (TimeSpan.FromMilliseconds (100));
                         if (!success) {
                             Log.Error ("ERROR_NOT_CONNECTED");
-                            return new[] { ERROR_NOT_CONNECTED };
+                            return new Dictionary<string, string>{ { SENSOR_ID_ERR, ERROR_NOT_CONNECTED } };
                         }
                         tcpClient.EndConnect (result);
 
                         var data = TpLinkSensor.getRealtimeData (tcpClient.GetStream ());
                         if (data == null) {
                             Log.Error ("ERROR_NOT_AVAILABLE");
-                            return new[] { ERROR_NOT_AVAILABLE };
+                            return new Dictionary<string, string>{ { SENSOR_ID_ERR, ERROR_NOT_AVAILABLE } };
                         }
 
-                        var values = new List<String> ();
+                        var values = new Dictionary<string, string> ();
                         if (monitorWattage) {
-                            values.Add (data.Wattage.ToString ("N0", CultureInfo.InvariantCulture));
+                            values.Add (SENSOR_ID_WATTAGE, data.Wattage.ToString ("N0", CultureInfo.InvariantCulture));
                         }
                         if (monitorVoltage) {
-                            values.Add (data.Voltage.ToString ("N0", CultureInfo.InvariantCulture));
+                            values.Add (SENSOR_ID_VOLTAGE, data.Voltage.ToString ("N0", CultureInfo.InvariantCulture));
                         }
                         if (monitorCurrent) {
-                            values.Add (data.Current.ToString ("N2", CultureInfo.InvariantCulture).TrimStart ('0'));
+                            values.Add (SENSOR_ID_CURRENT, data.Current.ToString ("N2", CultureInfo.InvariantCulture).TrimStart ('0'));
                         }
 
                         if (values.Count > 0) {
-                            Log.Info (String.Join ((", "), values));
+                            Log.Info (string.Join ((", "), values));
                         }
 
                         return values;
                     }
                 } catch (SocketException e) {
                     Log.Error (e.Message);
-                    return new[] { ERROR_NOT_CONNECTED };
+                    return new Dictionary<string, string>{ { SENSOR_ID_ERR, ERROR_NOT_CONNECTED } };
                 } catch (Exception e) {
                     Log.Error (e.ToString ());
-                    return new[] { ERROR_NOT_AVAILABLE };
+                    return new Dictionary<string, string>{ { SENSOR_ID_ERR, ERROR_NOT_AVAILABLE } };
                 }
             }
         }
@@ -95,7 +100,7 @@ namespace SmartPlugMonitor.Workers
             public bool isConfigComplete {
                 get {
                     var config = Globals.ConfigFile.TpLinkConfig;
-                    return !String.IsNullOrEmpty (config.IpAddress);
+                    return !string.IsNullOrEmpty (config.IpAddress);
                 }
             }
 

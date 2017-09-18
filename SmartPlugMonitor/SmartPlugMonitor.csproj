@@ -10,8 +10,6 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <StartupObject>SmartPlugMonitor.Program</StartupObject>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -58,15 +56,14 @@
     <Compile Include="Workers\ISensorWorker.cs" />
     <Compile Include="Workers\TpLinkSensorWorker.cs" />
     <Compile Include="Workers\ISensorWorkerBuilder.cs" />
-    <Compile Include="Workers\SensorWorkerFactory.cs" />
     <Compile Include="Sensors\TpLinkSensor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ui\TrayIconText.cs" />
-    <Compile Include="Workers\SensorSummaryWorker.cs" />
     <Compile Include="Ui\TrayIconStrip.cs" />
     <Compile Include="Toolbox\XElementExtensions.cs" />
     <Compile Include="Toolbox\BitmapExtensions.cs" />
     <Compile Include="Globals.cs" />
+    <Compile Include="Workers\SensorWorkerRunner.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Ui\" />

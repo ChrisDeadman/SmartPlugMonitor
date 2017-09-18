@@ -7,7 +7,7 @@ namespace SmartPlugMonitor.Workers
     {
         string DisplayName { get; }
 
-        ICollection<string> Values { get; }
+        IReadOnlyDictionary<string, string> Values { get; }
 
         void Start ();
 
