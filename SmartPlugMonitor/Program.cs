@@ -119,7 +119,7 @@ namespace SmartPlugMonitor
             {
                 var trayIconEnumerator = trayIconStrip.TrayIcons.GetEnumerator ();
 
-                if (args.Values.Count <= 0) {
+                if (args.SensorSummary.Count <= 0) {
                     if (trayIconEnumerator.MoveNext ()) {
                         var trayIcon = trayIconEnumerator.Current;
                         trayIcon.Text = Globals.ApplicationName;
@@ -128,7 +128,7 @@ namespace SmartPlugMonitor
                     }
                 }
 
-                foreach (var sensorEntry in args.Values) {
+                foreach (var sensorEntry in args.SensorSummary) {
                     foreach (var subEntry in sensorEntry.Value) {
                         if (!trayIconEnumerator.MoveNext ()) {
                             break;

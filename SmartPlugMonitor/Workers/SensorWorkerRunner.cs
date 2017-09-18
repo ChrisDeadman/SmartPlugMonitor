@@ -17,25 +17,25 @@ namespace SmartPlugMonitor.Workers
             this.pollingTimer = new Timer {
                 Interval = POLLING_INTERVAL
             };
-            pollingTimer.Tick += new EventHandler (UpdateValues);
+            pollingTimer.Tick += new EventHandler (OnPollSensors);
         }
 
         public IReadOnlyDictionary<ISensorWorker, IReadOnlyDictionary<string, string>> Values { get; private set; }
 
         public event EventHandler<ValuesChangedEventArgs> ValuesChanged;
 
-        private void UpdateValues (object sender, EventArgs args)
+        private void OnPollSensors (object sender, EventArgs args)
         {
             var sensorSummary = new Dictionary<ISensorWorker, IReadOnlyDictionary<string, string>> ();
 
             foreach (var worker in workers) {
-                if ((worker != this) && (worker.Values.Count > 0)) {
+                if (worker.Values.Count > 0) {
                     sensorSummary[worker] = worker.Values;
                 }
             }
 
             if (ValuesChanged != null) {
-                ValuesChanged.Invoke (this, new ValuesChangedEventArgs { Values = sensorSummary });
+                ValuesChanged.Invoke (this, new ValuesChangedEventArgs { SensorSummary = sensorSummary });
             }
         }
 
@@ -77,7 +77,7 @@ namespace SmartPlugMonitor.Workers
 
         public class ValuesChangedEventArgs : EventArgs
         {
-            public IReadOnlyDictionary<ISensorWorker, IReadOnlyDictionary<string, string>> Values { get; set; }
+            public IReadOnlyDictionary<ISensorWorker, IReadOnlyDictionary<string, string>> SensorSummary { get; set; }
         }
     }
 }
