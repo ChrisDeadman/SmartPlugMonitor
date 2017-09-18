@@ -138,6 +138,9 @@ namespace SmartPlugMonitor
                     var trayIcon = trayIconEnumerator.Current;
                     trayIcon.Text = $"{sensorEntry.SensorName}:{sensorEntry.ValueName}";
                     trayIcon.Icon = trayIconTextWriter.Render (sensorEntry.Value);
+                    if (!trayIcon.Visible) {
+                        Thread.Sleep (100); // Ensure correct tray icon order
+                    }
                     trayIcon.Visible = true;
 
                     if (Log.IsDebugEnabled) {
