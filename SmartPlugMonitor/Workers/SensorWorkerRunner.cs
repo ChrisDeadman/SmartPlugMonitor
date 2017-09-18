@@ -1,16 +1,30 @@
 ﻿using System;
+using System.ServiceModel;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Linq;
+using log4net;
 
 namespace SmartPlugMonitor.Workers
 {
     public class SensorWorkerRunner : IDisposable
     {
+        public class SensorResultsChangedEventArgs : EventArgs
+        {
+            public ICollection<SensorResult> SensorResults { get; private set; }
+
+            public SensorResultsChangedEventArgs (ICollection<SensorResult> sensorResults)
+            {
+                this.SensorResults = sensorResults;
+            }
+        }
+
+        private static readonly ILog Log = LogManager.GetLogger (typeof(SensorWorkerRunner));
+
         private const int POLLING_INTERVAL = 2000;
 
         private readonly Timer pollingTimer;
-        private readonly List<ISensorWorker> workers = new List<ISensorWorker> ();
+        private readonly SynchronizedCollection<ISensorWorker> workers = new SynchronizedCollection<ISensorWorker> ();
 
         public SensorWorkerRunner ()
         {
@@ -20,22 +34,20 @@ namespace SmartPlugMonitor.Workers
             pollingTimer.Tick += new EventHandler (OnPollSensors);
         }
 
-        public IReadOnlyDictionary<ISensorWorker, IReadOnlyDictionary<string, string>> Values { get; private set; }
+        public ICollection<SensorResult> SensorResults { get; private set; } = new SensorResult[] {};
 
-        public event EventHandler<ValuesChangedEventArgs> ValuesChanged;
+        public event EventHandler<SensorResultsChangedEventArgs> SensorResultsChanged;
 
         private void OnPollSensors (object sender, EventArgs args)
         {
-            var sensorSummary = new Dictionary<ISensorWorker, IReadOnlyDictionary<string, string>> ();
+            SensorResults = workers.SelectMany (w => w.Results).ToList ();
 
-            foreach (var worker in workers) {
-                if (worker.Values.Count > 0) {
-                    sensorSummary[worker] = worker.Values;
-                }
+            foreach (var result in SensorResults) {
+                Log.Info (result);
             }
 
-            if (ValuesChanged != null) {
-                ValuesChanged.Invoke (this, new ValuesChangedEventArgs { SensorSummary = sensorSummary });
+            if (SensorResultsChanged != null) {
+                SensorResultsChanged.Invoke (this, new SensorResultsChangedEventArgs (SensorResults));
             }
         }
 
@@ -45,13 +57,13 @@ namespace SmartPlugMonitor.Workers
                 throw new InvalidOperationException ();
             }
 
-            foreach (var builder in builders) {
+            builders.AsParallel ().ForAll (builder => {
                 if (builder.isConfigComplete) {
                     var worker = builder.build ();
                     worker.Start ();
                     workers.Add (worker);
                 }
-            }
+            });
 
             pollingTimer.Start ();
         }
@@ -62,22 +74,16 @@ namespace SmartPlugMonitor.Workers
                 pollingTimer.Stop ();
             }
 
-            foreach (var worker in workers) {
+            workers.AsParallel ().ForAll (worker => {
                 worker.Stop ();
                 worker.Dispose ();
-            }
-
+            });
             workers.Clear ();
         }
 
         public void Dispose ()
         {
             Stop ();
-        }
-
-        public class ValuesChangedEventArgs : EventArgs
-        {
-            public IReadOnlyDictionary<ISensorWorker, IReadOnlyDictionary<string, string>> SensorSummary { get; set; }
         }
     }
 }

@@ -12,7 +12,7 @@ namespace SmartPlugMonitor.Config
     /// </summary>
     public class ConfigFile
     {
-        static class XmlStrings
+        private static class XmlStrings
         {
             public const string RootElementName = "Settings";
         }
@@ -57,7 +57,7 @@ namespace SmartPlugMonitor.Config
         /// </summary>
         /// <param name="configFilePath">The config file path.</param>
         /// <returns></returns>
-        static XElement LoadXmlSettingsElement (string configFilePath)
+        private static XElement LoadXmlSettingsElement (string configFilePath)
         {
             XDocument document;
             using (var documentReader = new XmlTextReader (configFilePath) { WhitespaceHandling = WhitespaceHandling.Significant }) {
@@ -73,7 +73,7 @@ namespace SmartPlugMonitor.Config
         /// </summary>
         /// <param name="element">The element.</param>
         /// <returns></returns>
-        static XElement FindTopRootElement (XElement element)
+        private static XElement FindTopRootElement (XElement element)
         {
             var rootElement = element;
             while (rootElement.Parent != null)

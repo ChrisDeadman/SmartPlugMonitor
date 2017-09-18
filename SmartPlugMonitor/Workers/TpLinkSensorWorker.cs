@@ -1,7 +1,6 @@
 ﻿using log4net;
 using System;
 using System.Net.Sockets;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using SmartPlugMonitor.Config;
 using SmartPlugMonitor.Sensors;
@@ -18,9 +17,9 @@ namespace SmartPlugMonitor.Workers
         private const string SENSOR_ID_VOLTAGE = "voltage";
         private const string SENSOR_ID_CURRENT = "current";
        
-        private static readonly string ERROR_NOT_CONNECTED = "D/C";
-        private static readonly string ERROR_NOT_AVAILABLE = "N/A";
-        private static readonly int PORT_NUMBER = 9999;
+        private const string ERROR_NOT_CONNECTED = "D/C";
+        private const string ERROR_NOT_AVAILABLE = "N/A";
+        private const int PORT_NUMBER = 9999;
 
         private readonly string ipAddress;
         private readonly bool monitorWattage;
@@ -37,47 +36,44 @@ namespace SmartPlugMonitor.Workers
 
         public string DisplayName { get { return "tp-link"; } }
 
-        public IReadOnlyDictionary<string, string> Values {
+        public ICollection<SensorResult> Results {
             get {
                 try {
                     using (var tcpClient = new TcpClient ()) {
-                        var result = tcpClient.BeginConnect (ipAddress, PORT_NUMBER, null, null);
-                        var success = result.AsyncWaitHandle.WaitOne (TimeSpan.FromMilliseconds (100));
-                        if (!success) {
+                        var connectionResult = tcpClient.BeginConnect (ipAddress, PORT_NUMBER, null, null);
+                        var connectionSuccess = connectionResult.AsyncWaitHandle.WaitOne (TimeSpan.FromMilliseconds (100));
+                        if (!connectionSuccess) {
                             Log.Error ("ERROR_NOT_CONNECTED");
-                            return new Dictionary<string, string>{ { SENSOR_ID_ERR, ERROR_NOT_CONNECTED } };
+                            return new [] { new SensorResult (DisplayName, SENSOR_ID_ERR, ERROR_NOT_CONNECTED) };
                         }
-                        tcpClient.EndConnect (result);
+                        tcpClient.EndConnect (connectionResult);
 
                         var data = TpLinkSensor.getRealtimeData (tcpClient.GetStream ());
                         if (data == null) {
                             Log.Error ("ERROR_NOT_AVAILABLE");
-                            return new Dictionary<string, string>{ { SENSOR_ID_ERR, ERROR_NOT_AVAILABLE } };
+                            return new [] { new SensorResult (DisplayName, SENSOR_ID_ERR, ERROR_NOT_AVAILABLE) };
                         }
 
-                        var values = new Dictionary<string, string> ();
+                        var results = new List<SensorResult> ();
+
                         if (monitorWattage) {
-                            values.Add (SENSOR_ID_WATTAGE, data.Wattage.ToString ("N0", CultureInfo.InvariantCulture));
+                            results.Add (new SensorResult (DisplayName, SENSOR_ID_WATTAGE, data.Wattage.ToString ("N0", CultureInfo.InvariantCulture)));
                         }
                         if (monitorVoltage) {
-                            values.Add (SENSOR_ID_VOLTAGE, data.Voltage.ToString ("N0", CultureInfo.InvariantCulture));
+                            results.Add (new SensorResult (DisplayName, SENSOR_ID_VOLTAGE, data.Voltage.ToString ("N0", CultureInfo.InvariantCulture)));
                         }
                         if (monitorCurrent) {
-                            values.Add (SENSOR_ID_CURRENT, data.Current.ToString ("N2", CultureInfo.InvariantCulture).TrimStart ('0'));
+                            results.Add (new SensorResult (DisplayName, SENSOR_ID_CURRENT, data.Current.ToString ("N2", CultureInfo.InvariantCulture).TrimStart ('0')));
                         }
 
-                        if (values.Count > 0) {
-                            Log.Info (string.Join ((", "), values));
-                        }
-
-                        return values;
+                        return results;
                     }
                 } catch (SocketException e) {
                     Log.Error (e.Message);
-                    return new Dictionary<string, string>{ { SENSOR_ID_ERR, ERROR_NOT_CONNECTED } };
+                    return new [] { new SensorResult (DisplayName, SENSOR_ID_ERR, ERROR_NOT_CONNECTED) };
                 } catch (Exception e) {
                     Log.Error (e.ToString ());
-                    return new Dictionary<string, string>{ { SENSOR_ID_ERR, ERROR_NOT_AVAILABLE } };
+                    return new [] { new SensorResult (DisplayName, SENSOR_ID_ERR, ERROR_NOT_AVAILABLE) };
                 }
             }
         }

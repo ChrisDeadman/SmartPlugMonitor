@@ -1,12 +1,15 @@
-﻿using System;
-using System.Windows.Forms;
-using log4net;
-using SmartPlugMonitor.Ui;
-using System.Collections.Generic;
+﻿using log4net;
+using System;
+using System.IO;
 using System.Text;
 using System.Linq;
 using System.Drawing;
+using System.Threading;
 using System.Reflection;
+using System.Windows.Forms;
+using System.Collections.Generic;
+
+using SmartPlugMonitor.Ui;
 using SmartPlugMonitor.Workers;
 
 namespace SmartPlugMonitor
@@ -41,7 +44,7 @@ namespace SmartPlugMonitor
             private readonly ISensorWorkerBuilder[] sensorWorkerBuilders;
 
             private readonly TrayIconStrip trayIconStrip = new TrayIconStrip (3);
-            private readonly TrayIconText trayIconTextWriter = new TrayIconText ();
+            private readonly TextIconRenderer trayIconTextWriter = new TextIconRenderer ();
 
             private Form configWindow;
 
@@ -69,11 +72,11 @@ namespace SmartPlugMonitor
                     });
                 }
 
-                sensorWorkerRunner = new SensorWorkerRunner ();
-                sensorWorkerRunner.ValuesChanged += OnUpdateTrayIcon;
                 sensorWorkerBuilders = new ISensorWorkerBuilder[] {
                     new TpLinkSensorWorker.TpLinkSensorWorkerBuilder ()
                 };
+                sensorWorkerRunner = new SensorWorkerRunner ();
+                sensorWorkerRunner.SensorResultsChanged += OnUpdateTrayIcon;
                 sensorWorkerRunner.Start (sensorWorkerBuilders);
             }
 
@@ -115,11 +118,11 @@ namespace SmartPlugMonitor
                 sensorWorkerRunner.Start (sensorWorkerBuilders);
             }
 
-            void OnUpdateTrayIcon (object sender, SensorWorkerRunner.ValuesChangedEventArgs args)
+            void OnUpdateTrayIcon (object sender, SensorWorkerRunner.SensorResultsChangedEventArgs args)
             {
                 var trayIconEnumerator = trayIconStrip.TrayIcons.GetEnumerator ();
 
-                if (args.SensorSummary.Count <= 0) {
+                if (args.SensorResults.Count <= 0) {
                     if (trayIconEnumerator.MoveNext ()) {
                         var trayIcon = trayIconEnumerator.Current;
                         trayIcon.Text = Globals.ApplicationName;
@@ -128,15 +131,19 @@ namespace SmartPlugMonitor
                     }
                 }
 
-                foreach (var sensorEntry in args.SensorSummary) {
-                    foreach (var subEntry in sensorEntry.Value) {
-                        if (!trayIconEnumerator.MoveNext ()) {
-                            break;
+                foreach (var sensorEntry in args.SensorResults) {
+                    if (!trayIconEnumerator.MoveNext ()) {
+                        break;
+                    }
+                    var trayIcon = trayIconEnumerator.Current;
+                    trayIcon.Text = $"{sensorEntry.SensorName}:{sensorEntry.ValueName}";
+                    trayIcon.Icon = trayIconTextWriter.Render (sensorEntry.Value);
+                    trayIcon.Visible = true;
+
+                    if (Log.IsDebugEnabled) {
+                        using (var fs = File.Create ("trayIcon.ico")) {
+                            trayIcon.Icon.Save (fs);
                         }
-                        var trayIcon = trayIconEnumerator.Current;
-                        trayIcon.Text = $"{sensorEntry.Key.DisplayName}:{subEntry.Key}";
-                        trayIconTextWriter.DrawText (trayIcon, subEntry.Value);
-                        trayIcon.Visible = true;
                     }
                 }
 

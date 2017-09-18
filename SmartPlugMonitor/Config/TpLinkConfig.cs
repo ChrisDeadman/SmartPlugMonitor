@@ -7,7 +7,7 @@ namespace SmartPlugMonitor.Config
 {
     public class TpLinkConfig
     {
-        static class XmlStrings
+        private static class XmlStrings
         {
             public const string RootElementName = "TpLink";
             public const string IpAddressElementName = "IpAddress";

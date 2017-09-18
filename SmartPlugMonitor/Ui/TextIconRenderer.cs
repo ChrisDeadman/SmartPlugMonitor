@@ -1,25 +1,22 @@
-﻿using log4net;
-using System;
-using System.IO;
-using System.Windows.Forms;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+
 using SmartPlugMonitor.Toolbox;
 
 namespace SmartPlugMonitor.Ui
 {
-    public class TrayIconText
+    public class TextIconRenderer
     {
-        private static readonly ILog Log = LogManager.GetLogger (typeof(TrayIconText));
-
         private readonly Font bigFont;
         private readonly Font smallFont;
         private readonly Bitmap bitmap;
         private readonly Graphics graphics;
 
-        public TrayIconText ()
+        public TextIconRenderer ()
         {
             // get the default dpi to create an icon with the correct size
             float dpiX, dpiY;
@@ -52,7 +49,7 @@ namespace SmartPlugMonitor.Ui
             }
         }
 
-        public void DrawText (NotifyIcon trayIcon, string text)
+        public Icon Render (string text)
         {
             var useSmallFont = text.Length > 2;
             var x = useSmallFont ? -3 : -2;
@@ -62,13 +59,7 @@ namespace SmartPlugMonitor.Ui
             graphics.Clear (Color.Transparent);
             TextRenderer.DrawText (graphics, text, font, new Point (x, y), Color.White, Color.Transparent);
 
-            trayIcon.Icon = bitmap.ToIcon ();
-
-            if (Log.IsDebugEnabled) {
-                using (var fs = File.Create ("trayIcon.ico")) {
-                    trayIcon.Icon.Save (fs);
-                }
-            }
+            return bitmap.ToIcon ();
         }
     }
 }

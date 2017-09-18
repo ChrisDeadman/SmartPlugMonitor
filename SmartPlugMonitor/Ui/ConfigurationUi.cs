@@ -8,6 +8,18 @@ namespace SmartPlugMonitor.Ui
     {
         private System.ComponentModel.IContainer components = null;
 
+        private System.Windows.Forms.Label IpAddressTextBoxLabel;
+        private System.Windows.Forms.TextBox IpAddressTextBox;
+
+        private System.Windows.Forms.Label WattageCheckBoxLabel;
+        private System.Windows.Forms.CheckBox WattageCheckBox;
+
+        private System.Windows.Forms.Label VoltageCheckBoxLabel;
+        private System.Windows.Forms.CheckBox VoltageCheckBox;
+
+        private System.Windows.Forms.Label CurrentCheckBoxLabel;
+        private System.Windows.Forms.CheckBox CurrentCheckBox;
+
         public ConfigurationUi ()
         {
             InitializeComponent ();
@@ -29,26 +41,6 @@ namespace SmartPlugMonitor.Ui
             base.OnClosing (e);
         }
 
-        protected override void Dispose (bool disposing)
-        {
-            if (disposing && (components != null)) {
-                components.Dispose ();
-            }
-            base.Dispose (disposing);
-        }
-
-        private System.Windows.Forms.Label IpAddressTextBoxLabel;
-        private System.Windows.Forms.TextBox IpAddressTextBox;
-
-        private System.Windows.Forms.Label WattageCheckBoxLabel;
-        private System.Windows.Forms.CheckBox WattageCheckBox;
-
-        private System.Windows.Forms.Label VoltageCheckBoxLabel;
-        private System.Windows.Forms.CheckBox VoltageCheckBox;
-
-        private System.Windows.Forms.Label CurrentCheckBoxLabel;
-        private System.Windows.Forms.CheckBox CurrentCheckBox;
-
         void InitializeComponent ()
         {
             this.components = new System.ComponentModel.Container ();
@@ -58,11 +50,11 @@ namespace SmartPlugMonitor.Ui
             this.Text = "Configure";
             this.Icon = Globals.ApplicationIcon;
 
-            int x_offset = 20;
-            int y_offset = 20;
+            var x_offset = 20;
+            var y_offset = 20;
 
-            int x = x_offset;
-            int y = y_offset;
+            var x = x_offset;
+            var y = y_offset;
 
             this.IpAddressTextBoxLabel = new System.Windows.Forms.Label ();
             this.IpAddressTextBoxLabel.AutoSize = true;
@@ -121,6 +113,14 @@ namespace SmartPlugMonitor.Ui
 
             this.ResumeLayout (false);
             this.PerformLayout ();
+        }
+
+        protected override void Dispose (bool disposing)
+        {
+            if (disposing && (components != null)) {
+                components.Dispose ();
+            }
+            base.Dispose (disposing);
         }
     }
 }

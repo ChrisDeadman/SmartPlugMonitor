@@ -43,6 +43,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="WindowsBase" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -58,12 +59,13 @@
     <Compile Include="Workers\ISensorWorkerBuilder.cs" />
     <Compile Include="Sensors\TpLinkSensor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Ui\TrayIconText.cs" />
     <Compile Include="Ui\TrayIconStrip.cs" />
     <Compile Include="Toolbox\XElementExtensions.cs" />
     <Compile Include="Toolbox\BitmapExtensions.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="Workers\SensorWorkerRunner.cs" />
+    <Compile Include="Workers\SensorResult.cs" />
+    <Compile Include="Ui\TextIconRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Ui\" />
