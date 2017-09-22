@@ -5,9 +5,7 @@ using System.Drawing.Text;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
-using SmartPlugMonitor.Toolbox;
-
-namespace SmartPlugMonitor.Ui
+namespace SmartPlugMonitor.Toolbox
 {
     public class TextIconRenderer
     {

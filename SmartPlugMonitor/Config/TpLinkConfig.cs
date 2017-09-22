@@ -7,22 +7,31 @@ namespace SmartPlugMonitor.Config
 {
     public class TpLinkConfig
     {
-        private static class XmlStrings
+        public static class XmlStrings
         {
             public const string RootElementName = "TpLink";
             public const string IpAddressElementName = "IpAddress";
-            public const string MonitorWattageElementName = "MonitorWattage";
-            public const string MonitorVoltageElementName = "MonitorVoltage";
-            public const string MonitorCurrentElementName = "MonitorCurrent";
+            public const string PortNumberElementName = "PortNumber";
+            public const string MonitorWattageElementName = "Wattage";
+            public const string MonitorVoltageElementName = "Voltage";
+            public const string MonitorCurrentElementName = "Current";
         }
 
         /// <summary>
-        /// Gets or sets the IP Address.
+        /// Gets or sets the IP address.
         /// </summary>
         /// <value>
-        /// The IP Address of the smart plug.
+        /// The IP address of the smart plug.
         /// </value>
         public string IpAddress { get; set; }
+
+        /// <summary>
+        /// Gets or sets the port number.
+        /// </summary>
+        /// <value>
+        /// The port number of the smart plug.
+        /// </value>
+        public int PortNumber { get; set; }
 
         /// <summary>
         /// Gets or sets whether wattage should be monitored.
@@ -57,6 +66,7 @@ namespace SmartPlugMonitor.Config
         {
             var config = new TpLinkConfig {
                 IpAddress = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.IpAddressElementName).OptionalValue<string> ("192.168.0.1"),
+                PortNumber = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.PortNumberElementName).OptionalValue<int> (9999),
                 MonitorWattage = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.MonitorWattageElementName).OptionalValue<bool> (true),
                 MonitorVoltage = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.MonitorVoltageElementName).OptionalValue<bool> (false),
                 MonitorCurrent = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.MonitorCurrentElementName).OptionalValue<bool> (false)
@@ -74,6 +84,7 @@ namespace SmartPlugMonitor.Config
             return new XElement (
                 XmlStrings.RootElementName,
                 new XElement (XmlStrings.IpAddressElementName, IpAddress),
+                new XElement (XmlStrings.PortNumberElementName, PortNumber),
                 new XElement (XmlStrings.MonitorWattageElementName, MonitorWattage),
                 new XElement (XmlStrings.MonitorVoltageElementName, MonitorVoltage),
                 new XElement (XmlStrings.MonitorCurrentElementName, MonitorCurrent));

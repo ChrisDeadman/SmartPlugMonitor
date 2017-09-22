@@ -1,9 +1,11 @@
-﻿using System;
-using System.ServiceModel;
-using System.Collections.Generic;
-using System.Windows.Forms;
+﻿using log4net;
+using System;
 using System.Linq;
-using log4net;
+using System.ServiceModel;
+using System.Windows.Forms;
+using System.Collections.Generic;
+
+using SmartPlugMonitor.Config;
 
 namespace SmartPlugMonitor.Workers
 {
@@ -11,9 +13,9 @@ namespace SmartPlugMonitor.Workers
     {
         public class SensorResultsChangedEventArgs : EventArgs
         {
-            public ICollection<SensorResult> SensorResults { get; private set; }
+            public ICollection<SensorWorkerResult> SensorResults { get; private set; }
 
-            public SensorResultsChangedEventArgs (ICollection<SensorResult> sensorResults)
+            public SensorResultsChangedEventArgs (ICollection<SensorWorkerResult> sensorResults)
             {
                 this.SensorResults = sensorResults;
             }
@@ -34,7 +36,7 @@ namespace SmartPlugMonitor.Workers
             pollingTimer.Tick += new EventHandler (OnPollSensors);
         }
 
-        public ICollection<SensorResult> SensorResults { get; private set; } = new SensorResult[] {};
+        public ICollection<SensorWorkerResult> SensorResults { get; private set; } = new SensorWorkerResult[] {};
 
         public event EventHandler<SensorResultsChangedEventArgs> SensorResultsChanged;
 
@@ -51,17 +53,16 @@ namespace SmartPlugMonitor.Workers
             }
         }
 
-        public void Start (IEnumerable<ISensorWorkerBuilder> builders)
+        public void Start (IEnumerable<ISensorWorker> sensorWorkers)
         {
             if (pollingTimer.Enabled) {
                 throw new InvalidOperationException ();
             }
 
-            builders.AsParallel ().ForAll (builder => {
-                if (builder.isConfigComplete) {
-                    var worker = builder.build ();
-                    worker.Start ();
+            sensorWorkers.AsParallel ().ForAll (worker => {
+                if (worker.IsConfigComplete) {
                     workers.Add (worker);
+                    worker.Start ();
                 }
             });
 

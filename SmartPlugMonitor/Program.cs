@@ -11,6 +11,9 @@ using System.Collections.Generic;
 
 using SmartPlugMonitor.Ui;
 using SmartPlugMonitor.Workers;
+using SmartPlugMonitor.Config;
+using SmartPlugMonitor.Workers.TpLink;
+using SmartPlugMonitor.Toolbox;
 
 namespace SmartPlugMonitor
 {
@@ -41,48 +44,52 @@ namespace SmartPlugMonitor
         private class AppContext: ApplicationContext
         {
             private readonly SensorWorkerRunner sensorWorkerRunner;
-            private readonly ISensorWorkerBuilder[] sensorWorkerBuilders;
 
-            private readonly TrayIconStrip trayIconStrip = new TrayIconStrip (3);
+            private readonly TrayIconStrip trayIconStrip = new TrayIconStrip ();
+            private readonly ContextMenuStrip contextMenuStrip = new ContextMenuStrip ();
             private readonly TextIconRenderer trayIconTextWriter = new TextIconRenderer ();
 
             private Form configWindow;
 
             public AppContext ()
             {
-                Application.ApplicationExit += new EventHandler (Quit);
+                Application.ApplicationExit += new EventHandler (OnQuit);
                
-                var configureItem = new ToolStripMenuItem { Text = "Configure" };
-                configureItem.Click += new EventHandler (ToggleConfigWindow);
+                InitContextMenuStrip ();
 
-                var quitItem = new ToolStripMenuItem { Text = "Quit" };
-                quitItem.Click += new EventHandler (Quit);
-
-                var contextMenuStrip = new ContextMenuStrip ();
-                contextMenuStrip.Items.AddRange (new ToolStripMenuItem[] { configureItem, quitItem });
-
-                foreach (var trayIcon in trayIconStrip.TrayIcons) {
-                    trayIcon.Text = Globals.ApplicationName;
-                    trayIcon.ContextMenuStrip = contextMenuStrip;
-                    trayIcon.Click += new EventHandler ((s, e) => {
-                        var args = e as MouseEventArgs;
-                        if (args.Button == MouseButtons.Left) {
-                            ToggleConfigWindow (this, e);
-                        }
-                    });
-                }
-
-                sensorWorkerBuilders = new ISensorWorkerBuilder[] {
-                    new TpLinkSensorWorker.TpLinkSensorWorkerBuilder ()
-                };
                 sensorWorkerRunner = new SensorWorkerRunner ();
                 sensorWorkerRunner.SensorResultsChanged += OnUpdateTrayIcon;
-                sensorWorkerRunner.Start (sensorWorkerBuilders);
+                sensorWorkerRunner.Start (CreateSensorWorkers ());
             }
 
-            public void Quit (object sender, EventArgs args)
+            private void InitContextMenuStrip ()
             {
-                Log.Debug ("Quit");
+                var configureItem = new ToolStripMenuItem { Text = "Configure" };
+                configureItem.Click += new EventHandler (OnToggleConfigWindow);
+
+                var quitItem = new ToolStripMenuItem { Text = "Quit" };
+                quitItem.Click += new EventHandler (OnQuit);
+
+                contextMenuStrip.Items.AddRange (new ToolStripMenuItem[] { configureItem, quitItem });
+            }
+
+            private static ConfigForm CreateConfigForm ()
+            {
+                return new ConfigForm (new ConfigTab[] {
+                    new ConfigTabTpLink ()
+                });
+            }
+
+            private static IEnumerable<ISensorWorker> CreateSensorWorkers ()
+            {
+                return new ISensorWorker[] {
+                    new TpLinkSensorWorker (Globals.ConfigFile.TpLinkConfig)
+                };
+            }
+
+            public void OnQuit (object sender, EventArgs args)
+            {
+                Log.Debug ("OnQuit");
 
                 if (configWindow != null) {
                     configWindow.Close ();
@@ -94,17 +101,23 @@ namespace SmartPlugMonitor
                 Application.Exit ();
             }
 
-            void ToggleConfigWindow (object sender, EventArgs args)
+            void OnToggleConfigWindow (object sender, EventArgs args)
             {
-                Log.Debug ("ShowConfigWindow");
+                var mouseArgs = args as MouseEventArgs;
+                if ((mouseArgs == null) || (mouseArgs.Button != MouseButtons.Left)) {
+                    return;
+                }
+
+                Log.Debug ("OnToggleConfigWindow");
 
                 if (configWindow != null) {
                     configWindow.Close ();
                 } else {
-                    configWindow = new ConfigurationUi ();
+                    configWindow = CreateConfigForm ();
                     configWindow.FormClosed += OnConfigWindowClosed;
                     configWindow.Show ();
                     configWindow.Location = new Point (Cursor.Position.X - configWindow.Width, Cursor.Position.Y - configWindow.Height - 50);
+                    configWindow.Focus ();
                 }
             }
 
@@ -115,29 +128,28 @@ namespace SmartPlugMonitor
                 configWindow = null;
 
                 sensorWorkerRunner.Stop ();
-                sensorWorkerRunner.Start (sensorWorkerBuilders);
+                sensorWorkerRunner.Start (CreateSensorWorkers ());
             }
 
             void OnUpdateTrayIcon (object sender, SensorWorkerRunner.SensorResultsChangedEventArgs args)
             {
-                var trayIconEnumerator = trayIconStrip.TrayIcons.GetEnumerator ();
-
                 if (args.SensorResults.Count <= 0) {
-                    if (trayIconEnumerator.MoveNext ()) {
-                        var trayIcon = trayIconEnumerator.Current;
-                        trayIcon.Text = Globals.ApplicationName;
-                        trayIcon.Icon = Globals.ApplicationIcon;
-                        trayIcon.Visible = true;
-                    }
+                    trayIconStrip.Update (new Action<NotifyIcon>[] { trayIcon => {
+                            trayIcon.Text = Globals.ApplicationName;
+                            trayIcon.Icon = Globals.ApplicationIcon;
+                            trayIcon.ContextMenuStrip = contextMenuStrip;
+                            trayIcon.Click += new EventHandler (OnToggleConfigWindow);
+                            trayIcon.Visible = true;
+                        }
+                    });
+                    return;
                 }
 
-                foreach (var sensorEntry in args.SensorResults) {
-                    if (!trayIconEnumerator.MoveNext ()) {
-                        break;
-                    }
-                    var trayIcon = trayIconEnumerator.Current;
-                    trayIcon.Text = $"{sensorEntry.SensorName}:{sensorEntry.ValueName}";
-                    trayIcon.Icon = trayIconTextWriter.Render (sensorEntry.Value);
+                trayIconStrip.Update (args.SensorResults.Select (result => new Action<NotifyIcon> (trayIcon => {
+                    trayIcon.Text = $"{result.ValueName} ({result.SensorName})";
+                    trayIcon.Icon = trayIconTextWriter.Render (result.Value);
+                    trayIcon.ContextMenuStrip = contextMenuStrip;
+                    trayIcon.Click += new EventHandler (OnToggleConfigWindow);
                     trayIcon.Visible = true;
 
                     if (Log.IsDebugEnabled) {
@@ -145,11 +157,7 @@ namespace SmartPlugMonitor
                             trayIcon.Icon.Save (fs);
                         }
                     }
-                }
-
-                while (trayIconEnumerator.MoveNext ()) {
-                    trayIconEnumerator.Current.Visible = false;
-                }
+                })));
             }
         }
     }

@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace SmartPlugMonitor
+namespace SmartPlugMonitor.Workers
 {
-    public class SensorResult
+    public class SensorWorkerResult
     {
         public string SensorName { get; private set; }
 
@@ -10,7 +10,7 @@ namespace SmartPlugMonitor
 
         public string Value { get; private set; }
 
-        public SensorResult (string sensorName, string valueName, string value)
+        public SensorWorkerResult (string sensorName, string valueName, string value)
         {
             this.Value = value;
             this.ValueName = valueName;

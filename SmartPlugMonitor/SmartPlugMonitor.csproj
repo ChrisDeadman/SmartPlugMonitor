@@ -51,12 +51,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
-    <Compile Include="Ui\ConfigurationUi.cs" />
     <Compile Include="Config\TpLinkConfig.cs" />
     <Compile Include="Config\ConfigFile.cs" />
     <Compile Include="Workers\ISensorWorker.cs" />
-    <Compile Include="Workers\TpLinkSensorWorker.cs" />
-    <Compile Include="Workers\ISensorWorkerBuilder.cs" />
     <Compile Include="Sensors\TpLinkSensor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ui\TrayIconStrip.cs" />
@@ -64,8 +61,13 @@
     <Compile Include="Toolbox\BitmapExtensions.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="Workers\SensorWorkerRunner.cs" />
-    <Compile Include="Workers\SensorResult.cs" />
-    <Compile Include="Ui\TextIconRenderer.cs" />
+    <Compile Include="Workers\TpLink\TpLinkSensorWorker.cs" />
+    <Compile Include="Workers\SensorWorkerResult.cs" />
+    <Compile Include="Ui\UiItem.cs" />
+    <Compile Include="Ui\ConfigTab.cs" />
+    <Compile Include="Ui\ConfigForm.cs" />
+    <Compile Include="Ui\ConfigTabTpLink.cs" />
+    <Compile Include="Toolbox\TextIconRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Ui\" />
@@ -73,6 +75,7 @@
     <Folder Include="Workers\" />
     <Folder Include="Sensors\" />
     <Folder Include="Toolbox\" />
+    <Folder Include="Workers\TpLink\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="icon.ico">

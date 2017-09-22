@@ -7,7 +7,9 @@ namespace SmartPlugMonitor.Workers
     {
         string DisplayName { get; }
 
-        ICollection<SensorResult> Results { get; }
+        bool IsConfigComplete { get; }
+
+        ICollection<SensorWorkerResult> Results { get; }
 
         void Start ();
 
