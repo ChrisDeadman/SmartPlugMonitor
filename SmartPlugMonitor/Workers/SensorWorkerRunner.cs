@@ -1,6 +1,7 @@
 ﻿using log4net;
 using System;
 using System.Linq;
+using System.Threading;
 using System.ServiceModel;
 using System.Windows.Forms;
 using System.Collections.Generic;
@@ -25,37 +26,17 @@ namespace SmartPlugMonitor.Workers
 
         private const int POLLING_INTERVAL = 2000;
 
-        private readonly Timer pollingTimer;
         private readonly SynchronizedCollection<ISensorWorker> workers = new SynchronizedCollection<ISensorWorker> ();
 
-        public SensorWorkerRunner ()
-        {
-            this.pollingTimer = new Timer {
-                Interval = POLLING_INTERVAL
-            };
-            pollingTimer.Tick += new EventHandler (OnPollSensors);
-        }
+        private Thread pollingThread;
 
         public ICollection<SensorWorkerResult> SensorResults { get; private set; } = new SensorWorkerResult[] {};
 
         public event EventHandler<SensorResultsChangedEventArgs> SensorResultsChanged;
 
-        private void OnPollSensors (object sender, EventArgs args)
-        {
-            SensorResults = workers.SelectMany (w => w.Results).ToList ();
-
-            foreach (var result in SensorResults) {
-                Log.Info (result);
-            }
-
-            if (SensorResultsChanged != null) {
-                SensorResultsChanged.Invoke (this, new SensorResultsChangedEventArgs (SensorResults));
-            }
-        }
-
         public void Start (IEnumerable<ISensorWorker> sensorWorkers)
         {
-            if (pollingTimer.Enabled) {
+            if (pollingThread != null) {
                 throw new InvalidOperationException ();
             }
 
@@ -66,13 +47,24 @@ namespace SmartPlugMonitor.Workers
                 }
             });
 
-            pollingTimer.Start ();
+            pollingThread = new Thread (() => {
+                try {
+                    while (true) {
+                        QuerySensors ();
+                        Thread.Sleep (POLLING_INTERVAL);
+                    }
+                } catch (ThreadAbortException) {
+                }
+            });
+            pollingThread.Start ();
         }
 
         public void Stop ()
         {
-            if (pollingTimer.Enabled) {
-                pollingTimer.Stop ();
+            if (pollingThread != null) {
+                pollingThread.Abort ();
+                pollingThread.Join ();
+                pollingThread = null;
             }
 
             workers.AsParallel ().ForAll (worker => {
@@ -85,6 +77,19 @@ namespace SmartPlugMonitor.Workers
         public void Dispose ()
         {
             Stop ();
+        }
+
+        private void QuerySensors ()
+        {
+            SensorResults = workers.SelectMany (w => w.Results).ToList ();
+
+            foreach (var result in SensorResults) {
+                Log.Info (result);
+            }
+
+            if (SensorResultsChanged != null) {
+                SensorResultsChanged.Invoke (this, new SensorResultsChangedEventArgs (SensorResults));
+            }
         }
     }
 }

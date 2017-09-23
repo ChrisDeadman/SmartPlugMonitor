@@ -1,13 +1,14 @@
 ﻿using log4net;
 using System;
+using System.Threading;
 using System.Net.Sockets;
 using System.Globalization;
 using System.Collections.Generic;
 
 using SmartPlugMonitor.Config;
-using SmartPlugMonitor.Sensors;
+using SmartPlugMonitor.Workers;
 
-namespace SmartPlugMonitor.Workers.TpLink
+namespace SmartPlugMonitor.Sensors.TpLink
 {
     public class TpLinkSensorWorker : ISensorWorker
     {
@@ -67,6 +68,8 @@ namespace SmartPlugMonitor.Workers.TpLink
                 } catch (SocketException e) {
                     Log.Error (e.Message);
                     return new [] { new SensorWorkerResult (DisplayName, SENSOR_ID_ERR, ERROR_NOT_CONNECTED) };
+                } catch (ThreadAbortException) {
+                    throw;
                 } catch (Exception e) {
                     Log.Error (e.ToString ());
                     return new [] { new SensorWorkerResult (DisplayName, SENSOR_ID_ERR, ERROR_NOT_AVAILABLE) };

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Xml.Linq;
+using System.Globalization;
 
 namespace SmartPlugMonitor.Toolbox
 {
@@ -10,11 +9,11 @@ namespace SmartPlugMonitor.Toolbox
         public static XElement MandatoryElement (this XElement xElement, string elementName)
         {
             if (xElement == null)
-                throw new MissingFieldException (string.Format ("Mandatory XML Element '{0}' not present", elementName));
+                throw new MissingFieldException (string.Format ("Mandatory XML element '{0}' not present", elementName));
 
             var element = xElement.Element (elementName);
             if (element == null)
-                throw new MissingFieldException (string.Format ("Mandatory XML Element '{0}' not present", elementName));
+                throw new MissingFieldException (string.Format ("Mandatory XML element '{0}' not present", elementName));
 
             return element;
         }
@@ -31,20 +30,14 @@ namespace SmartPlugMonitor.Toolbox
             return element;
         }
 
-        public static IEnumerable<XElement> ElementsOfOptionalElement (this XElement xElement, string elementName)
-        {
-            var element = xElement.OptionalElement (elementName);
-            return element == null ? new XElement[0] : element.Elements ();
-        }
-
         public static TElement MandatoryAttribute<TElement> (this XElement xElement, string attributeName)
         {
             if (xElement == null)
-                throw new MissingFieldException (string.Format ("Mandatory XML Attribute '{0}' not present", attributeName));
+                throw new MissingFieldException (string.Format ("Mandatory XML attribute '{0}' not present", attributeName));
 
             var attribute = xElement.Attribute (attributeName);
             if (attribute == null)
-                throw new MissingFieldException (string.Format ("Mandatory XML Attribute '{0}' not present", attributeName));
+                throw new MissingFieldException (string.Format ("Mandatory XML attribute '{0}' not present", attributeName));
 
             return (TElement)ParseValue (attribute.Value, (dynamic)default(TElement));
         }
@@ -67,10 +60,10 @@ namespace SmartPlugMonitor.Toolbox
         public static TElement MandatoryValue<TElement> (this XElement xElement)
         {
             if (xElement == null)
-                throw new MissingFieldException ("Mandatory Value of XML Elementnot present");
+                throw new MissingFieldException ("Mandatory value of XML element not present");
 
             if (string.IsNullOrEmpty (xElement.Value))
-                throw new MissingFieldException (string.Format ("Mandatory Value of XML Element '{0}' is null", xElement));
+                throw new MissingFieldException (string.Format ("Mandatory value of XML element '{0}' is null", xElement));
 
             return (TElement)ParseValue (xElement.Value, (dynamic)default(TElement));
         }
@@ -83,11 +76,6 @@ namespace SmartPlugMonitor.Toolbox
             return (TElement)ParseValue (xElement.Value, (dynamic)defaultValue);
         }
 
-        /// <summary>
-        /// Adds or replaces an element.
-        /// </summary>
-        /// <param name="xElement">The target xElement.</param>
-        /// <param name="newElement">The new element.</param>
         public static void AddOrReplaceElement (this XElement xElement, XElement newElement)
         {
             var existingElement = xElement.Element (newElement.Name);

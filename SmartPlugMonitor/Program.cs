@@ -1,35 +1,46 @@
 ﻿using log4net;
 using System;
 using System.IO;
-using System.Text;
 using System.Linq;
-using System.Drawing;
 using System.Threading;
 using System.Reflection;
-using System.Windows.Forms;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Collections.Generic;
 
 using SmartPlugMonitor.Ui;
 using SmartPlugMonitor.Workers;
-using SmartPlugMonitor.Config;
-using SmartPlugMonitor.Workers.TpLink;
 using SmartPlugMonitor.Toolbox;
+using SmartPlugMonitor.Platform;
+using SmartPlugMonitor.Sensors.TpLink;
 
 namespace SmartPlugMonitor
 {
-    static class Program
+    class Program
     {
         private static readonly ILog Log = LogManager.GetLogger (typeof(Program));
 
-        [STAThread]
-        static void Main ()
+        private static IPlatform Platform;
+
+        private readonly ITrayIconStrip trayIconStrip;
+        private readonly TextIconRenderer textIconRenderer;
+        private readonly IDictionary<string, EventHandler> contextMenu;
+        private readonly SensorWorkerRunner sensorWorkerRunner;
+
+        private IWindow configWindow;
+
+        public static void Main (string[] args)
         {
-            Application.EnableVisualStyles ();
-            Application.SetCompatibleTextRenderingDefault (false);
+            if (Globals.IsUnix) {
+                Platform = new UnixPlatform ();
+            } else {
+                Platform = new Win32Platform ();
+            }
+            Platform.Init ();
 
             try {
-                var appContext = new AppContext ();
-                Application.Run (appContext);
+                new Program ().Start ();
+                Platform.ApplicationRun ();
             } catch (AggregateException ex) {
                 var message = ex.Flatten ().InnerException.ToString ();
                 Log.Error (message);
@@ -41,124 +52,107 @@ namespace SmartPlugMonitor
             }
         }
 
-        private class AppContext: ApplicationContext
+        public Program ()
         {
-            private readonly SensorWorkerRunner sensorWorkerRunner;
+            trayIconStrip = Platform.CreateTrayIconStrip ();
+            textIconRenderer = new TextIconRenderer ();
 
-            private readonly TrayIconStrip trayIconStrip = new TrayIconStrip ();
-            private readonly ContextMenuStrip contextMenuStrip = new ContextMenuStrip ();
-            private readonly TextIconRenderer trayIconTextWriter = new TextIconRenderer ();
+            contextMenu = new Dictionary<string, EventHandler> {
+                { "Configure", OnToggleConfigWindow },
+                { "Quit", OnQuit }
+            };
 
-            private Form configWindow;
+            sensorWorkerRunner = new SensorWorkerRunner ();
+            sensorWorkerRunner.SensorResultsChanged += OnUpdateTrayIcon;
+        }
 
-            public AppContext ()
-            {
-                Application.ApplicationExit += new EventHandler (OnQuit);
-               
-                InitContextMenuStrip ();
+        public void Start ()
+        {
+            sensorWorkerRunner.Start (Platform.CreateSensorWorkers ());
+        }
 
-                sensorWorkerRunner = new SensorWorkerRunner ();
-                sensorWorkerRunner.SensorResultsChanged += OnUpdateTrayIcon;
-                sensorWorkerRunner.Start (CreateSensorWorkers ());
+        public void OnQuit (object sender, EventArgs e)
+        {
+            Log.Info ("OnQuit");
+
+            if (configWindow != null) {
+                configWindow.Close ();
             }
 
-            private void InitContextMenuStrip ()
-            {
-                var configureItem = new ToolStripMenuItem { Text = "Configure" };
-                configureItem.Click += new EventHandler (OnToggleConfigWindow);
+            sensorWorkerRunner.Dispose ();
+            trayIconStrip.Dispose ();
 
-                var quitItem = new ToolStripMenuItem { Text = "Quit" };
-                quitItem.Click += new EventHandler (OnQuit);
+            Platform.ApplicationExit ();
+        }
 
-                contextMenuStrip.Items.AddRange (new ToolStripMenuItem[] { configureItem, quitItem });
-            }
+        public void OnToggleConfigWindow (object sender, EventArgs e)
+        {
+            Log.Info ($"OnToggleConfigWindow ({configWindow == null})");
 
-            private static ConfigForm CreateConfigForm ()
-            {
-                return new ConfigForm (new ConfigTab[] {
-                    new ConfigTabTpLink ()
-                });
-            }
+            if (configWindow != null) {
+                configWindow.Close ();
+            } else {
+                configWindow = Platform.CreateConfigWindow ();
+                configWindow.OnClose += OnConfigWindowClosed;
 
-            private static IEnumerable<ISensorWorker> CreateSensorWorkers ()
-            {
-                return new ISensorWorker[] {
-                    new TpLinkSensorWorker (Globals.ConfigFile.TpLinkConfig)
-                };
-            }
+                var cursorPos = Platform.GetCursorPosition (configWindow);
 
-            public void OnQuit (object sender, EventArgs args)
-            {
-                Log.Debug ("OnQuit");
-
-                if (configWindow != null) {
-                    configWindow.Close ();
+                var windowX = cursorPos.X - (configWindow.Width / 2);
+                var windowY = cursorPos.Y - configWindow.Height - 20;
+                if (windowY < 0) {
+                    windowY = cursorPos.Y + 20;
                 }
 
-                sensorWorkerRunner.Dispose ();
-                trayIconStrip.Dispose ();
-
-                Application.Exit ();
+                configWindow.Show (new Point (windowX, windowY));
             }
+        }
 
-            void OnToggleConfigWindow (object sender, EventArgs args)
-            {
-                var mouseArgs = args as MouseEventArgs;
-                if ((mouseArgs == null) || (mouseArgs.Button != MouseButtons.Left)) {
-                    return;
-                }
+        public void OnConfigWindowClosed (object sender, EventArgs e)
+        {
+            Log.Info ("OnConfigWindowClosed");
 
-                Log.Debug ("OnToggleConfigWindow");
+            configWindow = null;
+            Globals.SaveConfigFile ();
 
-                if (configWindow != null) {
-                    configWindow.Close ();
-                } else {
-                    configWindow = CreateConfigForm ();
-                    configWindow.FormClosed += OnConfigWindowClosed;
-                    configWindow.Show ();
-                    configWindow.Location = new Point (Cursor.Position.X - configWindow.Width, Cursor.Position.Y - configWindow.Height - 50);
-                    configWindow.Focus ();
-                }
-            }
+            sensorWorkerRunner.Stop ();
+            sensorWorkerRunner.Start (Platform.CreateSensorWorkers ());
+        }
 
-            void OnConfigWindowClosed (object sender, EventArgs args)
-            {
-                Log.Debug ("OnConfigWindowClosed");
-
-                configWindow = null;
-
-                sensorWorkerRunner.Stop ();
-                sensorWorkerRunner.Start (CreateSensorWorkers ());
-            }
-
-            void OnUpdateTrayIcon (object sender, SensorWorkerRunner.SensorResultsChangedEventArgs args)
-            {
-                if (args.SensorResults.Count <= 0) {
-                    trayIconStrip.Update (new Action<NotifyIcon>[] { trayIcon => {
-                            trayIcon.Text = Globals.ApplicationName;
-                            trayIcon.Icon = Globals.ApplicationIcon;
-                            trayIcon.ContextMenuStrip = contextMenuStrip;
-                            trayIcon.Click += new EventHandler (OnToggleConfigWindow);
-                            trayIcon.Visible = true;
+        public void OnUpdateTrayIcon (object sender, SensorWorkerRunner.SensorResultsChangedEventArgs e)
+        {
+            Platform.ApplicationInvoke (() => {
+                if (e.SensorResults.Count <= 0) {
+                    trayIconStrip.Update (new Action<ITrayIcon>[] { trayIcon => {
+                            trayIcon.ToolTipText = Globals.ApplicationName;
+                            trayIcon.Icon = Globals.ApplicationIcon.ToBitmap ();
+                            trayIcon.ContextMenu = contextMenu;
+                            trayIcon.OnActivate = OnToggleConfigWindow;
+                            if (!trayIcon.Visible) {
+                                trayIcon.Visible = true;
+                            }
                         }
                     });
                     return;
                 }
 
-                trayIconStrip.Update (args.SensorResults.Select (result => new Action<NotifyIcon> (trayIcon => {
-                    trayIcon.Text = $"{result.ValueName} ({result.SensorName})";
-                    trayIcon.Icon = trayIconTextWriter.Render (result.Value);
-                    trayIcon.ContextMenuStrip = contextMenuStrip;
-                    trayIcon.Click += new EventHandler (OnToggleConfigWindow);
-                    trayIcon.Visible = true;
+                trayIconStrip.Update (e.SensorResults.Select (result => new Action<ITrayIcon> (trayIcon => {
+                    var icon = textIconRenderer.Render (result.Value);
 
                     if (Log.IsDebugEnabled) {
-                        using (var fs = File.Create ("trayIcon.ico")) {
-                            trayIcon.Icon.Save (fs);
+                        using (var fs = File.Create ("trayIcon.png")) {
+                            icon.Save (fs, ImageFormat.Png);
                         }
                     }
+
+                    trayIcon.ToolTipText = $"{result.ValueName} ({result.SensorName})";
+                    trayIcon.Icon = icon;
+                    trayIcon.ContextMenu = contextMenu;
+                    trayIcon.OnActivate = OnToggleConfigWindow;
+                    if (!trayIcon.Visible) {
+                        trayIcon.Visible = true;
+                    }
                 })));
-            }
+            });
         }
     }
 }

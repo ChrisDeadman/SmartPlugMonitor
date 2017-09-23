@@ -2,6 +2,7 @@
 using SmartPlugMonitor.Config;
 using System.Drawing;
 using System.Reflection;
+using System;
 
 namespace SmartPlugMonitor
 {
@@ -16,6 +17,9 @@ namespace SmartPlugMonitor
         public static readonly string ConfigFilePath = ApplicationPath + "SmartPlugMonitor.exe.config";
 
         public static readonly ConfigFile ConfigFile = ConfigFile.Load (ConfigFilePath);
+
+        public static readonly bool IsUnix = Environment.OSVersion.Platform == PlatformID.Unix ||
+                                             Environment.OSVersion.Platform == PlatformID.MacOSX;
 
         public static void SaveConfigFile ()
         {
