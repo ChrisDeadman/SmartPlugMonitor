@@ -93,6 +93,7 @@
     <Compile Include="Platform\UnixPlatform.cs" />
     <Compile Include="Platform\Win32Platform.cs" />
     <Compile Include="Platform\IPlatform.cs" />
+    <Compile Include="Config\TrayIconConfig.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Ui\" />

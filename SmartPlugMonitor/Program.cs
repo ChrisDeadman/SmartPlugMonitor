@@ -16,31 +16,22 @@ using SmartPlugMonitor.Sensors.TpLink;
 
 namespace SmartPlugMonitor
 {
-    class Program
+    public class Program
     {
         private static readonly ILog Log = LogManager.GetLogger (typeof(Program));
 
-        private static IPlatform Platform;
-
-        private readonly ITrayIconStrip trayIconStrip;
-        private readonly TextIconRenderer textIconRenderer;
-        private readonly IDictionary<string, EventHandler> contextMenu;
-        private readonly SensorWorkerRunner sensorWorkerRunner;
-
-        private IWindow configWindow;
-
         public static void Main (string[] args)
         {
+            IPlatform platform;
             if (Globals.IsUnix) {
-                Platform = new UnixPlatform ();
+                platform = new UnixPlatform ();
             } else {
-                Platform = new Win32Platform ();
+                platform = new Win32Platform ();
             }
-            Platform.Init ();
+            platform.Init ();
 
             try {
-                new Program ().Start ();
-                Platform.ApplicationRun ();
+                new Program (platform).Run ();
             } catch (AggregateException ex) {
                 var message = ex.Flatten ().InnerException.ToString ();
                 Log.Error (message);
@@ -52,23 +43,38 @@ namespace SmartPlugMonitor
             }
         }
 
-        public Program ()
-        {
-            trayIconStrip = Platform.CreateTrayIconStrip ();
-            textIconRenderer = new TextIconRenderer ();
+        private readonly IPlatform Platform;
+        private readonly TextIconRenderer TextIconRenderer;
+        private readonly ITrayIconStrip TrayIconStrip;
+        private readonly IDictionary<string, EventHandler> ContextMenu;
+        private readonly SensorWorkerRunner SensorWorkerRunner;
 
-            contextMenu = new Dictionary<string, EventHandler> {
+        private IWindow configWindow;
+
+        public Program (IPlatform platform)
+        {
+            this.Platform = platform;
+
+            this.TextIconRenderer = new TextIconRenderer (
+                Globals.ConfigFile.TrayIconConfig.FontFamily,
+                Globals.ConfigFile.TrayIconConfig.FontSize,
+                Globals.ConfigFile.TrayIconConfig.IconSize);
+
+            this.TrayIconStrip = Platform.CreateTrayIconStrip ();
+
+            this.ContextMenu = new Dictionary<string, EventHandler> {
                 { "Configure", OnToggleConfigWindow },
                 { "Quit", OnQuit }
             };
 
-            sensorWorkerRunner = new SensorWorkerRunner ();
-            sensorWorkerRunner.SensorResultsChanged += OnUpdateTrayIcon;
+            this.SensorWorkerRunner = new SensorWorkerRunner ();
+            this.SensorWorkerRunner.SensorResultsChanged += OnUpdateTrayIcon;
         }
 
-        public void Start ()
+        public void Run ()
         {
-            sensorWorkerRunner.Start (Platform.CreateSensorWorkers ());
+            SensorWorkerRunner.Start (Platform.CreateSensorWorkers ());
+            Platform.ApplicationRun ();
         }
 
         public void OnQuit (object sender, EventArgs e)
@@ -79,8 +85,8 @@ namespace SmartPlugMonitor
                 configWindow.Close ();
             }
 
-            sensorWorkerRunner.Dispose ();
-            trayIconStrip.Dispose ();
+            SensorWorkerRunner.Dispose ();
+            TrayIconStrip.Dispose ();
 
             Platform.ApplicationExit ();
         }
@@ -114,18 +120,18 @@ namespace SmartPlugMonitor
             configWindow = null;
             Globals.SaveConfigFile ();
 
-            sensorWorkerRunner.Stop ();
-            sensorWorkerRunner.Start (Platform.CreateSensorWorkers ());
+            SensorWorkerRunner.Stop ();
+            SensorWorkerRunner.Start (Platform.CreateSensorWorkers ());
         }
 
         public void OnUpdateTrayIcon (object sender, SensorWorkerRunner.SensorResultsChangedEventArgs e)
         {
             Platform.ApplicationInvoke (() => {
                 if (e.SensorResults.Count <= 0) {
-                    trayIconStrip.Update (new Action<ITrayIcon>[] { trayIcon => {
+                    TrayIconStrip.Update (new Action<ITrayIcon>[] { trayIcon => {
                             trayIcon.ToolTipText = Globals.ApplicationName;
                             trayIcon.Icon = Globals.ApplicationIcon.ToBitmap ();
-                            trayIcon.ContextMenu = contextMenu;
+                            trayIcon.ContextMenu = ContextMenu;
                             trayIcon.OnActivate = OnToggleConfigWindow;
                             if (!trayIcon.Visible) {
                                 trayIcon.Visible = true;
@@ -135,8 +141,8 @@ namespace SmartPlugMonitor
                     return;
                 }
 
-                trayIconStrip.Update (e.SensorResults.Select (result => new Action<ITrayIcon> (trayIcon => {
-                    var icon = textIconRenderer.Render (result.Value);
+                TrayIconStrip.Update (e.SensorResults.Select (result => new Action<ITrayIcon> (trayIcon => {
+                    var icon = TextIconRenderer.Render (result.Value, Color.White);
 
                     if (Log.IsDebugEnabled) {
                         using (var fs = File.Create ("trayIcon.png")) {
@@ -146,7 +152,7 @@ namespace SmartPlugMonitor
 
                     trayIcon.ToolTipText = $"{result.ValueName} ({result.SensorName})";
                     trayIcon.Icon = icon;
-                    trayIcon.ContextMenu = contextMenu;
+                    trayIcon.ContextMenu = ContextMenu;
                     trayIcon.OnActivate = OnToggleConfigWindow;
                     if (!trayIcon.Visible) {
                         trayIcon.Visible = true;

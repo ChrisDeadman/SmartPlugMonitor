@@ -26,6 +26,14 @@ namespace SmartPlugMonitor.Config
         public TpLinkConfig TpLinkConfig { get; private set; }
 
         /// <summary>
+        /// Gets or sets the tray icon config.
+        /// </summary>
+        /// <value>
+        /// The try icon config.
+        /// </value>
+        public TrayIconConfig TrayIconConfig { get; private set; }
+
+        /// <summary>
         /// Loads the XML configuration.
         /// </summary>
         /// <param name="configFilePath">The config file path.</param>
@@ -33,7 +41,9 @@ namespace SmartPlugMonitor.Config
         public static ConfigFile Load (string configFilePath)
         {
             var xmlRoot = LoadXmlSettingsElement (configFilePath);
+
             return new ConfigFile {
+                TrayIconConfig = TrayIconConfig.FromXml (xmlRoot),
                 TpLinkConfig = TpLinkConfig.FromXml (xmlRoot)
             };
         }
@@ -46,6 +56,7 @@ namespace SmartPlugMonitor.Config
         {
             var xmlRoot = LoadXmlSettingsElement (filePath);
 
+            xmlRoot.AddOrReplaceElement (TrayIconConfig.ToXml ());
             xmlRoot.AddOrReplaceElement (TpLinkConfig.ToXml ());
 
             using (var documentWriter = new StreamWriter (filePath, false, new UTF8Encoding (false)))
