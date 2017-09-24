@@ -1,5 +1,5 @@
 ﻿
-SmartPlugMonitor v0.1
+SmartPlugMonitor v0.2
 =====================
 
 Author: ChrisDeadman
@@ -12,20 +12,24 @@ Tray-based power monitoring software for smart plugs.
 * Displays sensor information in system tray
 
 ## Usage
-* Right-click on notification icon allows configuration
+* Click on notification icon allows configuration
 * Simply input ip-address and choose which sensors to show
 
 ## Supported Operating Systems
+* Linux (tested on Ubuntu MATE 17.04)
 * Windows 7
 * Windows 10
-
-_Note: It's runnable on Linux but many distributions cannot display monos notify-icons (see this [Bugreport](https://bugzilla.xamarin.com/show_bug.cgi?id=14976))_
 
 tp-link HS1XX protocol reverse-engineering credits go to [George Georgovassilis and Thomas Baust](https://blog.georgovassilis.com/2016/05/07/controlling-the-tp-link-hs100-wi-fi-smart-plug/)  
 Application icon credits go to [tango.freedesktop.org](http://tango.freedesktop.org)
 
 Release notes
 =======================
+
+### SmartPlugMonitor v0.2
+* tray icon tooltip now shows sensor name
+* improve tray icon visibility
+* now also supports linux (using gtk+ backend)
 
 ### SmartPlugMonitor v0.1
 * Initial release
