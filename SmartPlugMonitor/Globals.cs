@@ -1,8 +1,9 @@
-﻿using System.Windows.Forms;
-using SmartPlugMonitor.Config;
+﻿using System;
 using System.Drawing;
 using System.Reflection;
-using System;
+using System.Windows.Forms;
+
+using SmartPlugMonitor.Config;
 
 namespace SmartPlugMonitor
 {

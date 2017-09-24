@@ -23,7 +23,6 @@ namespace SmartPlugMonitor.Toolbox
                     var newIcon = (TIcon)Activator.CreateInstance (typeof(TIcon));
                     trayIcons.Add (newIcon);
                     newIcon.Visible = true;
-                    Thread.Sleep (100); // Ensure correct tray icon order
                 }
 
                 var icon = trayIcons [iconIdx];
