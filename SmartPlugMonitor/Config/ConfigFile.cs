@@ -18,12 +18,12 @@ namespace SmartPlugMonitor.Config
         }
 
         /// <summary>
-        /// Gets or sets the tp-link config.
+        /// Gets or sets the HS110 config.
         /// </summary>
         /// <value>
-        /// The tp-link config.
+        /// The HS110 config.
         /// </value>
-        public TpLinkConfig TpLinkConfig { get; private set; }
+        public HS110Config HS110Config { get; private set; }
 
         /// <summary>
         /// Gets or sets the tray icon config.
@@ -44,7 +44,7 @@ namespace SmartPlugMonitor.Config
 
             return new ConfigFile {
                 TrayIconConfig = TrayIconConfig.FromXml (xmlRoot),
-                TpLinkConfig = TpLinkConfig.FromXml (xmlRoot)
+                HS110Config = HS110Config.FromXml (xmlRoot),
             };
         }
 
@@ -57,7 +57,7 @@ namespace SmartPlugMonitor.Config
             var xmlRoot = LoadXmlSettingsElement (filePath);
 
             xmlRoot.AddOrReplaceElement (TrayIconConfig.ToXml ());
-            xmlRoot.AddOrReplaceElement (TpLinkConfig.ToXml ());
+            xmlRoot.AddOrReplaceElement (HS110Config.ToXml ());
 
             using (var documentWriter = new StreamWriter (filePath, false, new UTF8Encoding (false)))
                 new XDocument (FindTopRootElement (xmlRoot)).Save (documentWriter, SaveOptions.None);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SmartPlugMonitor.Workers
 {
-    public interface ISensorWorker : IDisposable
+    public interface ISensorWorker
     {
         string DisplayName { get; }
 

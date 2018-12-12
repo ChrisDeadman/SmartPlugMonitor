@@ -1,18 +1,14 @@
-﻿using log4net;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using log4net;
 
-using SmartPlugMonitor.Ui;
-using SmartPlugMonitor.Workers;
-using SmartPlugMonitor.Toolbox;
 using SmartPlugMonitor.Platform;
-using SmartPlugMonitor.Sensors.TpLink;
+using SmartPlugMonitor.Toolbox;
+using SmartPlugMonitor.Workers;
 
 namespace SmartPlugMonitor
 {

@@ -5,13 +5,13 @@ using SmartPlugMonitor.Toolbox;
 
 namespace SmartPlugMonitor.Config
 {
-    public class TpLinkConfig
+    public class HS110Config
     {
         public static class XmlStrings
         {
-            public const string RootElementName = "TpLink";
+            public const string RootElementName = "HS110";
             public const string IpAddressElementName = "IpAddress";
-            public const string PortNumberElementName = "PortNumber";
+            public const string PortElementName = "Port";
             public const string MonitorWattageElementName = "Wattage";
             public const string MonitorVoltageElementName = "Voltage";
             public const string MonitorCurrentElementName = "Current";
@@ -31,7 +31,7 @@ namespace SmartPlugMonitor.Config
         /// <value>
         /// The port number of the smart plug.
         /// </value>
-        public int PortNumber { get; set; }
+        public int Port { get; set; }
 
         /// <summary>
         /// Gets or sets whether wattage should be monitored.
@@ -62,14 +62,14 @@ namespace SmartPlugMonitor.Config
         /// </summary>
         /// <param name="xmlRoot">The XML root.</param>
         /// <returns></returns>
-        public static TpLinkConfig FromXml (XElement xmlRoot)
+        public static HS110Config FromXml(XElement xmlRoot)
         {
-            var config = new TpLinkConfig {
-                IpAddress = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.IpAddressElementName).OptionalValue<string> ("192.168.0.1"),
-                PortNumber = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.PortNumberElementName).OptionalValue<int> (9999),
-                MonitorWattage = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.MonitorWattageElementName).OptionalValue<bool> (true),
-                MonitorVoltage = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.MonitorVoltageElementName).OptionalValue<bool> (false),
-                MonitorCurrent = xmlRoot.OptionalElement (XmlStrings.RootElementName).OptionalElement (XmlStrings.MonitorCurrentElementName).OptionalValue<bool> (false)
+            var config = new HS110Config {
+                IpAddress = xmlRoot.OptionalElement(XmlStrings.RootElementName).OptionalElement(XmlStrings.IpAddressElementName).OptionalValue(""),
+                Port = xmlRoot.OptionalElement(XmlStrings.RootElementName).OptionalElement(XmlStrings.PortElementName).OptionalValue(9999),
+                MonitorWattage = xmlRoot.OptionalElement(XmlStrings.RootElementName).OptionalElement(XmlStrings.MonitorWattageElementName).OptionalValue(true),
+                MonitorVoltage = xmlRoot.OptionalElement(XmlStrings.RootElementName).OptionalElement(XmlStrings.MonitorVoltageElementName).OptionalValue(false),
+                MonitorCurrent = xmlRoot.OptionalElement(XmlStrings.RootElementName).OptionalElement(XmlStrings.MonitorCurrentElementName).OptionalValue(false)
             };
 
             return config;
@@ -79,15 +79,15 @@ namespace SmartPlugMonitor.Config
         /// Returns the current settings as XML.
         /// </summary>
         /// <returns></returns>
-        public XElement ToXml ()
+        public XElement ToXml()
         {
-            return new XElement (
+            return new XElement(
                 XmlStrings.RootElementName,
-                new XElement (XmlStrings.IpAddressElementName, IpAddress),
-                new XElement (XmlStrings.PortNumberElementName, PortNumber),
-                new XElement (XmlStrings.MonitorWattageElementName, MonitorWattage),
-                new XElement (XmlStrings.MonitorVoltageElementName, MonitorVoltage),
-                new XElement (XmlStrings.MonitorCurrentElementName, MonitorCurrent));
+                new XElement(XmlStrings.IpAddressElementName, IpAddress),
+                new XElement(XmlStrings.PortElementName, Port),
+                new XElement(XmlStrings.MonitorWattageElementName, MonitorWattage),
+                new XElement(XmlStrings.MonitorVoltageElementName, MonitorVoltage),
+                new XElement(XmlStrings.MonitorCurrentElementName, MonitorCurrent));
         }
     }
 }

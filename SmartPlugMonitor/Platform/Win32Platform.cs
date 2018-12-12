@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Collections.Generic;
 
-using SmartPlugMonitor.Ui;
+using SmartPlugMonitor.Sensors.HS110;
 using SmartPlugMonitor.Toolbox;
+using SmartPlugMonitor.Ui;
 using SmartPlugMonitor.Workers;
-using SmartPlugMonitor.Sensors.TpLink;
 
 namespace SmartPlugMonitor.Platform
 {
@@ -14,50 +14,50 @@ namespace SmartPlugMonitor.Platform
     {
         private static Form dummyForm;
 
-        public void Init ()
+        public void Init()
         {
-            dummyForm = new Form { Size = new Size () };
-            dummyForm.Show ();
+            dummyForm = new Form { Size = new Size() };
+            dummyForm.Show();
             dummyForm.Visible = false;
         }
 
-        public void ApplicationRun ()
+        public void ApplicationRun()
         {
-            Application.Run ();
+            Application.Run();
         }
 
-        public void ApplicationExit ()
+        public void ApplicationExit()
         {
-            Application.Exit ();
+            Application.Exit();
         }
 
-        public void ApplicationInvoke (Action action)
+        public void ApplicationInvoke(Action action)
         {
-            dummyForm.Invoke (action);
+            dummyForm.Invoke(action);
         }
 
-        public Point GetCursorPosition (IWindow window)
+        public Point GetCursorPosition(IWindow window)
         {
             return Cursor.Position;
         }
 
-        public ITrayIconStrip CreateTrayIconStrip ()
+        public ITrayIconStrip CreateTrayIconStrip()
         {
-            return new TrayIconStrip<Win32TrayIcon> ();
+            return new TrayIconStrip<Win32TrayIcon>();
         }
 
-        public IWindow CreateConfigWindow ()
+        public IWindow CreateConfigWindow()
         {
-            return new Win32ConfigWindow (new Win32ConfigPage[] {
-                new Win32ConfigPage (new TpLinkConfigController ())
+            return new Win32ConfigWindow(new Win32ConfigPage[] {
+                new Win32ConfigPage (new HS110ConfigController ()),
             }) {
                 TopMost = true
             };
         }
 
-        public IEnumerable<ISensorWorker> CreateSensorWorkers ()
+        public IEnumerable<ISensorWorker> CreateSensorWorkers()
         {
-            yield return new TpLinkSensorWorker (Globals.ConfigFile.TpLinkConfig);
+            yield return new HS110SensorWorker(Globals.ConfigFile.HS110Config);
         }
     }
 }

@@ -1,8 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
-using System.Collections.Generic;
 
 using SmartPlugMonitor.Toolbox;
 
@@ -12,19 +11,19 @@ namespace SmartPlugMonitor.Ui
     {
         private readonly IList<Win32ConfigPage> configPages;
 
-        public Win32ConfigWindow (IEnumerable<Win32ConfigPage> configPages)
+        public Win32ConfigWindow(IEnumerable<Win32ConfigPage> configPages)
         {
-            this.configPages = configPages.ToList ();
-            Initialize ();
+            this.configPages = configPages.ToList();
+            Initialize();
         }
 
-        private void Initialize ()
+        private void Initialize()
         {
-            base.SuspendLayout ();
+            base.SuspendLayout();
             base.Text = "Configure";
             base.Icon = Globals.ApplicationIcon;
-            base.MinimumSize = new System.Drawing.Size (200, 200);
-            base.MaximumSize = new System.Drawing.Size (250, 220);
+            base.MinimumSize = new Size(200, 200);
+            base.MaximumSize = new Size(250, 220);
             base.AutoSize = true;
             base.AutoSizeMode = AutoSizeMode.GrowOnly;
             base.MinimizeBox = false;
@@ -34,25 +33,25 @@ namespace SmartPlugMonitor.Ui
                 Dock = DockStyle.Fill
             };
 
-            base.Controls.Add (tabControl);
+            base.Controls.Add(tabControl);
 
             foreach (var page in configPages) {
-                tabControl.TabPages.Add (page);
+                tabControl.TabPages.Add(page);
             }
 
-            base.ResumeLayout (false);
-            base.PerformLayout ();
+            base.ResumeLayout(false);
+            base.PerformLayout();
         }
 
-        protected override void Dispose (bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing) {
                 foreach (var page in configPages) {
-                    page.Dispose ();
+                    page.Dispose();
                 }
             }
 
-            base.Dispose (disposing);
+            base.Dispose(disposing);
         }
     }
 }

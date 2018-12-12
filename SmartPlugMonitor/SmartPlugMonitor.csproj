@@ -63,7 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
-    <Compile Include="Config\TpLinkConfig.cs" />
+    <Compile Include="Config\HS110Config.cs" />
     <Compile Include="Config\ConfigFile.cs" />
     <Compile Include="Workers\ISensorWorker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -77,13 +77,13 @@
     <Compile Include="Toolbox\GtkTrayIcon.cs" />
     <Compile Include="Toolbox\ITrayIcon.cs" />
     <Compile Include="Toolbox\TrayIconStrip.cs" />
-    <Compile Include="Sensors\TpLink\TpLinkSensor.cs" />
-    <Compile Include="Sensors\TpLink\TpLinkSensorWorker.cs" />
+    <Compile Include="Sensors\HS110\HS110Sensor.cs" />
+    <Compile Include="Sensors\HS110\HS110SensorWorker.cs" />
     <Compile Include="Ui\GtkConfigWindow.cs" />
     <Compile Include="Toolbox\IWindow.cs" />
     <Compile Include="Toolbox\GtkWindow.cs" />
     <Compile Include="Ui\GtkConfigPage.cs" />
-    <Compile Include="Sensors\TpLink\TpLinkConfigController.cs" />
+    <Compile Include="Sensors\HS110\HS110ConfigController.cs" />
     <Compile Include="Ui\IConfigController.cs" />
     <Compile Include="Ui\Win32ConfigPage.cs" />
     <Compile Include="Ui\Win32ConfigWindow.cs" />
@@ -101,7 +101,7 @@
     <Folder Include="Workers\" />
     <Folder Include="Sensors\" />
     <Folder Include="Toolbox\" />
-    <Folder Include="Sensors\TpLink\" />
+    <Folder Include="Sensors\HS110\" />
     <Folder Include="Platform\" />
   </ItemGroup>
   <ItemGroup>

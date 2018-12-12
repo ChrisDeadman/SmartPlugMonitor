@@ -69,7 +69,6 @@ namespace SmartPlugMonitor.Workers
 
             workers.AsParallel ().ForAll (worker => {
                 worker.Stop ();
-                worker.Dispose ();
             });
             workers.Clear ();
         }
@@ -81,7 +80,7 @@ namespace SmartPlugMonitor.Workers
 
         private void QuerySensors ()
         {
-            SensorResults = workers.SelectMany (w => w.Results).ToList ();
+            SensorResults = workers.AsParallel().SelectMany (w => w.Results).ToList ();
 
             foreach (var result in SensorResults) {
                 Log.Info (result);

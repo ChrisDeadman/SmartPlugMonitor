@@ -14,4 +14,38 @@ Global
 		{67D06921-9A96-464E-8138-0246D6D93A87}.Release|x86.ActiveCfg = Release|x86
 		{67D06921-9A96-464E-8138-0246D6D93A87}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.TextStylePolicy = $1
+		$1.inheritsSet = null
+		$1.scope = application/config+xml
+		$0.XmlFormattingPolicy = $2
+		$2.inheritsSet = null
+		$2.scope = application/config+xml
+		$0.TextStylePolicy = $3
+		$3.inheritsSet = null
+		$3.scope = application/xml
+		$0.XmlFormattingPolicy = $4
+		$4.scope = application/xml
+		$0.TextStylePolicy = $5
+		$5.TabsToSpaces = True
+		$5.EolMarker = Unix
+		$5.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $6
+		$6.NewLinesForBracesInProperties = False
+		$6.NewLinesForBracesInAccessors = False
+		$6.NewLinesForBracesInAnonymousMethods = False
+		$6.NewLinesForBracesInControlBlocks = False
+		$6.NewLinesForBracesInAnonymousTypes = False
+		$6.NewLinesForBracesInObjectCollectionArrayInitializers = False
+		$6.NewLinesForBracesInLambdaExpressionBody = False
+		$6.NewLineForElse = False
+		$6.NewLineForCatch = False
+		$6.NewLineForFinally = False
+		$6.NewLineForMembersInObjectInit = False
+		$6.NewLineForMembersInAnonymousTypes = False
+		$6.NewLineForClausesInQuery = False
+		$6.scope = text/x-csharp
+		$0.StandardHeader = $7
+	EndGlobalSection
 EndGlobal

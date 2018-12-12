@@ -11,6 +11,9 @@ namespace SmartPlugMonitor
     {
         public const string ApplicationName = "Smartplug Monitor";
 
+        public const string STATUS_NOT_CONNECTED = "D/C";
+        public const string STATUS_NOT_AVAILABLE = "N/A";
+
         public static readonly string ApplicationPath = Application.StartupPath + @"/";
 
         public static readonly Icon ApplicationIcon = new Icon (Assembly.GetExecutingAssembly ().GetManifestResourceStream ("icon.ico"));
